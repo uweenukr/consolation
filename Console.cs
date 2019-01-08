@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -62,6 +63,7 @@ namespace Consolation
 
         bool isCollapsed;
         bool isVisible;
+        string _htmlFilePath;
         readonly List<Log> logs = new List<Log>();
         readonly ConcurrentQueue<Log> queuedLogs = new ConcurrentQueue<Log>();
 
@@ -106,6 +108,11 @@ namespace Consolation
             {
                 isVisible = true;
             }
+
+			_htmlFilePath = Path.Combine(Path.GetFullPath(Application.dataPath + "/../"), "Log-" + DateTime.Now.ToString("yyyyMMddTHHmmss") + ".html");
+
+            //if (File.Exists(_htmlFilePath))
+			//	File.Delete(_htmlFilePath);
         }
 
         void Update()
@@ -257,10 +264,10 @@ namespace Consolation
         void WriteLogs(List<Log> logs)
 	    {
 
-            var htmlHeader = "<!doctype html><html class='no-js' lang=''><head><meta charset = 'utf-8'><title>"+ Application.productName + " / Log Time: "+DateTime.Now+ "</title></head><body style='font-family:Lucida Console, Monaco, monospace; background-color:#f2f2f2'>";
+            var htmlHeader = "<!doctype html><html class='no-js' lang=''><head><meta charset = 'utf-8'><title>"+ "Application.productName" + " / Log Time: "+ DateTime.Now.ToString("yyyyMMddTHHmmss") + "</title></head><body style='font-family:Lucida Console, Monaco, monospace; background-color:#f2f2f2'>";
             var htmlFooter = "</body></html>";
 
-			using (var sw = File.AppendText(_filePath))
+			using (var sw = File.AppendText(_htmlFilePath))
             {
                 sw.WriteLine(htmlHeader);
                 for (int i = 0; i < logs.Count; i++)
@@ -278,7 +285,7 @@ namespace Consolation
                             break;
                     }
 
-                    sw.WriteLine("<p " + color + ">[" + logs[i].type + "] " + logs[i].message+"</p>");
+                    sw.WriteLine("<p " + color + "> " + String.Format("{0:.###}", Time.realtimeSinceStartup) + " [" + logs[i].type + "] " + logs[i].message+"</p>");
                     if(logs[i].stackTrace != "")
                         sw.WriteLine("<p style='color:gray'>[Stack] " + logs[i].stackTrace + "</p>");
                     sw.WriteLine("<hr>");
