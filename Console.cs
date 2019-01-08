@@ -250,6 +250,41 @@ namespace Consolation
             // Queue the log into a ConcurrentQueue to be processed later in the Unity main thread,
             // so that we don't get GUI-related errors for logs coming from other threads
             queuedLogs.Enqueue(log);
+
+            WriteLogs(logs);
+        }
+
+        void WriteLogs(List<Log> logs)
+	    {
+
+            var htmlHeader = "<!doctype html><html class='no-js' lang=''><head><meta charset = 'utf-8'><title>"+ Application.productName + " / Log Time: "+DateTime.Now+ "</title></head><body style='font-family:Lucida Console, Monaco, monospace; background-color:#f2f2f2'>";
+            var htmlFooter = "</body></html>";
+
+			using (var sw = File.AppendText(_filePath))
+            {
+                sw.WriteLine(htmlHeader);
+                for (int i = 0; i < logs.Count; i++)
+                {
+
+                    var color = "style='color:black'";
+                    switch (logs[i].type)
+                    {
+                        case LogType.Error:
+                        case LogType.Exception:
+                            color = "style='background-color:#D9001D;color:white'";
+                            break;
+                        case LogType.Warning:
+                            color = "style='background-color:yellow;color:black'";
+                            break;
+                    }
+
+                    sw.WriteLine("<p " + color + ">[" + logs[i].type + "] " + logs[i].message+"</p>");
+                    if(logs[i].stackTrace != "")
+                        sw.WriteLine("<p style='color:gray'>[Stack] " + logs[i].stackTrace + "</p>");
+                    sw.WriteLine("<hr>");
+                }
+                sw.WriteLine(htmlFooter);
+            }
         }
 
         void ProcessLogItem(Log log)
